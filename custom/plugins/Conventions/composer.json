@@ -1,17 +1,29 @@
 {
     "name": "conventions/conventions",
-    "description": "conventions/conventions",
+    "description": "Assign labels such as \"New\", \"Sale\" or \"Limited Edition\" to products and show them in the storefront.",
     "type": "shopware-platform-plugin",
     "version": "1.0.0",
     "license": "MIT",
+    "authors": [
+        {
+            "name": "Yusuf Abo",
+            "role": "Developer"
+        }
+    ],
     "require": {
-        "shopware/core": "~6.7.0"
+        "shopware/core": "~6.7.0",
+        "shopware/storefront": "~6.7.0",
+        "shopware/administration": "~6.7.0"
     },
     "extra": {
         "shopware-plugin-class": "Conventions\\Conventions",
         "label": {
-            "de-DE": "Skeleton plugin",
-            "en-GB": "Skeleton plugin"
+            "de-DE": "Produkt-Labels",
+            "en-GB": "Product Labels"
+        },
+        "description": {
+            "de-DE": "Weise Produkten Labels wie \"Neu\", \"Sale\" oder \"Limitiert\" zu und zeige sie in der Storefront an.",
+            "en-GB": "Assign labels such as \"New\", \"Sale\" or \"Limited Edition\" to products and show them in the storefront."
         }
     },
     "autoload": {
