@@ -40,7 +40,7 @@ class ProductLabelDefinition extends EntityDefinition
     {
         return ProductLabelCollection::class;
     }
-// Defines the default values for new Product Labels.
+    // Defines the default values for new Product Labels.
 
     public function getDefaults(): array
     {

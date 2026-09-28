@@ -7,8 +7,6 @@ use Conventions\Core\Content\Product\Extension\ProductLabelExtension;
 use Conventions\Core\Content\ProductLabel\ProductLabelDefinition;
 use Conventions\Core\Content\ProductLabel\ProductLabelProductDefinition;
 use Conventions\Core\Content\ProductLabel\ProductLabelTranslationDefinition;
-use Conventions\Core\Content\ProductLabel\Validation\ProductLabelValidator;
-use Conventions\Subscriber\ProductLabelCriteriaSubscriber;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 return static function (ContainerConfigurator $containerConfigurator): void {
@@ -29,6 +27,4 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $services->set(LanguageExtension::class)
         ->tag('shopware.entity.extension');
-
-   
 };
