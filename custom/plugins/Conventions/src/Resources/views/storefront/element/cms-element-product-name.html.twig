@@ -1,0 +1,11 @@
+{% sw_extends '@Storefront/storefront/element/cms-element-product-name.html.twig' %}
+
+{% block element_product_name_inner %}
+    {{ parent() }}
+
+    {% if page.product %}
+        {% sw_include '@Conventions/storefront/component/product/labels.html.twig' with {
+            labels: page.product.extensions.labels
+        } %}
+    {% endif %}
+{% endblock %}

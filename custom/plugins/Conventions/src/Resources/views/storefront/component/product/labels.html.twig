@@ -1,0 +1,21 @@
+{#
+    Reusable label list, used in the product box and on the product detail page.
+    Expects "labels": the product's "labels" extension, already filtered and sorted
+    by the ProductLabelCriteriaSubscriber.
+#}
+{% block component_product_labels %}
+    {% if labels and labels|length > 0 %}
+        <div class="product-labels">
+            {% for label in labels %}
+                {% block component_product_labels_item %}
+                    <span
+                        class="product-label{% if label.hasLightColor() %} product-label--light{% endif %}"
+                        style="--product-label-color: {{ label.color }}"
+                    >
+                        {{ label.translated.name }}
+                    </span>
+                {% endblock %}
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endblock %}
