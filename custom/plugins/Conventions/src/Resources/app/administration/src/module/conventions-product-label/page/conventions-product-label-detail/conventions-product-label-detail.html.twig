@@ -1,0 +1,146 @@
+{% block conventions_product_label_detail %}
+<sw-page class="conventions-product-label-detail">
+
+    {% block conventions_product_label_detail_smart_bar_header %}
+    <template #smart-bar-header>
+        <h2>{{ placeholder(productLabel, 'name', $tc('conventions-product-label.detail.titleNew')) }}</h2>
+    </template>
+    {% endblock %}
+
+    {% block conventions_product_label_detail_smart_bar_actions %}
+    <template #smart-bar-actions>
+        <mt-button
+            variant="secondary"
+            :disabled="isLoading"
+            @click="onCancel"
+        >
+            {{ $tc('global.default.cancel') }}
+        </mt-button>
+
+        <mt-button
+            v-tooltip="{
+                message: $tc('sw-privileges.tooltip.warning'),
+                disabled: acl.can('product.editor'),
+                showOnDisabledElements: true
+            }"
+            variant="primary"
+            :is-loading="isLoading"
+            :disabled="!acl.can('product.editor')"
+            @click="onClickSave"
+        >
+            {{ $tc('global.default.save') }}
+        </mt-button>
+    </template>
+    {% endblock %}
+
+    {% block conventions_product_label_detail_language_switch %}
+    <template #language-switch>
+        <sw-language-switch
+            :save-changes-function="saveOnLanguageChange"
+            :abort-change-function="abortOnLanguageChange"
+            :save-permission="acl.can('product.editor')"
+            @on-change="onChangeLanguage"
+        />
+    </template>
+    {% endblock %}
+
+    <template #content>
+        {# sw-card-view renders sw-error-summary ("The following errors occurred: ...") #}
+        <sw-card-view>
+
+            {% block conventions_product_label_detail_language_info %}
+            <sw-language-info
+                :entity-description="placeholder(productLabel, 'name', $tc('conventions-product-label.detail.titleNew'))"
+            />
+            {% endblock %}
+
+            {% block conventions_product_label_detail_card_general %}
+            <mt-card
+                position-identifier="conventions-product-label-detail-general"
+                :title="$tc('conventions-product-label.detail.cardTitleGeneral')"
+                :is-loading="isLoading"
+            >
+                <template v-if="productLabel">
+                    <sw-container
+                        columns="repeat(auto-fit, minmax(250px, 1fr))"
+                        gap="0 30px"
+                    >
+                        <mt-text-field
+                            v-model="productLabel.name"
+                            :label="$tc('conventions-product-label.detail.labelName')"
+                            :placeholder="placeholder(productLabel, 'name', $tc('conventions-product-label.detail.placeholderName'))"
+                            :error="productLabelNameError"
+                            :disabled="!acl.can('product.editor')"
+                            required
+                        />
+
+                        <mt-colorpicker
+                            v-model="productLabel.color"
+                            color-output="hex"
+                            :alpha="false"
+                            :label="$tc('conventions-product-label.detail.labelColor')"
+                            :error="productLabelColorError"
+                            :disabled="!acl.can('product.editor')"
+                            :z-index="1000"
+                            required
+                        />
+
+                        <mt-number-field
+                            v-model="productLabel.priority"
+                            number-type="int"
+                            :min="0"
+                            :label="$tc('conventions-product-label.detail.labelPriority')"
+                            :help-text="$tc('conventions-product-label.detail.helpTextPriority')"
+                            :error="productLabelPriorityError"
+                            :disabled="!acl.can('product.editor')"
+                        />
+
+                        <mt-switch
+                            v-model="productLabel.active"
+                            :label="$tc('conventions-product-label.detail.labelActive')"
+                            :disabled="!acl.can('product.editor')"
+                        />
+                    </sw-container>
+                </template>
+            </mt-card>
+            {% endblock %}
+
+            {% block conventions_product_label_detail_card_validity %}
+            <mt-card
+                position-identifier="conventions-product-label-detail-validity"
+                :title="$tc('conventions-product-label.detail.cardTitleValidity')"
+                :subtitle="$tc('conventions-product-label.detail.cardSubtitleValidity')"
+                :is-loading="isLoading"
+            >
+                <template v-if="productLabel">
+                    <sw-container
+                        columns="repeat(auto-fit, minmax(250px, 1fr))"
+                        gap="0 30px"
+                    >
+                        <mt-datepicker
+                            v-model="productLabel.validFrom"
+                            date-type="datetime"
+                            :label="$tc('conventions-product-label.detail.labelValidFrom')"
+                            :placeholder="$tc('conventions-product-label.detail.placeholderDate')"
+                            :error="productLabelValidFromError"
+                            :disabled="!acl.can('product.editor')"
+                        />
+
+                        <mt-datepicker
+                            v-model="productLabel.validTo"
+                            date-type="datetime"
+                            :label="$tc('conventions-product-label.detail.labelValidTo')"
+                            :placeholder="$tc('conventions-product-label.detail.placeholderDate')"
+                            :error="productLabelValidToError"
+                            :disabled="!acl.can('product.editor')"
+                        />
+                    </sw-container>
+                </template>
+            </mt-card>
+            {% endblock %}
+
+        </sw-card-view>
+    </template>
+
+</sw-page>
+{% endblock %}

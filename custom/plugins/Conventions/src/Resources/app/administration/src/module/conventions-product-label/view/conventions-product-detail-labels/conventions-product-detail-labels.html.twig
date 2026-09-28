@@ -1,0 +1,43 @@
+<div class="conventions-product-detail-labels">
+    {% block conventions_product_detail_labels %}
+    <div v-if="isLoading">
+        <sw-skeleton />
+    </div>
+
+    <mt-card
+        v-else
+        position-identifier="conventions-product-detail-labels"
+        :title="$tc('conventions-product-label.tab.cardTitle')"
+    >
+        {% block conventions_product_detail_labels_select %}
+        <sw-entity-many-to-many-select
+            v-if="labels"
+            v-model:entity-collection="product.extensions.labels"
+            class="conventions-product-detail-labels__select"
+            label-property="name"
+            :local-mode="true"
+            :label="$tc('conventions-product-label.tab.selectLabel')"
+            :placeholder="$tc('conventions-product-label.tab.selectPlaceholder')"
+            :help-text="$tc('conventions-product-label.tab.helpText')"
+            :disabled="!acl.can('product.editor')"
+        >
+            <template #selection-label-property="{ item }">
+                <span
+                    class="conventions-product-detail-labels__color"
+                    :style="{ backgroundColor: item.color }"
+                ></span>
+                {{ item.translated?.name || item.name }}
+            </template>
+
+            <template #result-label-property="{ item }">
+                <span
+                    class="conventions-product-detail-labels__color"
+                    :style="{ backgroundColor: item.color }"
+                ></span>
+                {{ item.translated?.name || item.name }}
+            </template>
+        </sw-entity-many-to-many-select>
+        {% endblock %}
+    </mt-card>
+    {% endblock %}
+</div>

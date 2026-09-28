@@ -1,0 +1,23 @@
+.conventions-product-label-list__color {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: var(--mt-spacing-2xs, 4px);
+    border-radius: 50%;
+    vertical-align: middle;
+    
+}
+.conventions-product-label-list__content {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+
+    // Centre only while "No product labels yet" is shown, never the table
+    &:has(.mt-empty-state) {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+}
+ 

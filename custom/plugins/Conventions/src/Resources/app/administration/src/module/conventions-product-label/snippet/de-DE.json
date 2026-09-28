@@ -1,0 +1,49 @@
+{
+    "global": {
+        "entities": {
+            "product_label": "Produkt-Label | Produkt-Labels"
+        }
+    },
+    "conventions-product-label": {
+        "general": {
+            "mainMenuItemGeneral": "Produkt-Labels",
+            "descriptionTextModule": "Produkt-Labels verwalten"
+        },
+        "list": {
+            "buttonAdd": "Label hinzufügen",
+            "columnName": "Name",
+            "columnColor": "Farbe",
+            "columnPriority": "Priorität",
+            "columnActive": "Aktiv",
+            "columnValidFrom": "Gültig ab",
+            "columnValidTo": "Gültig bis",
+            "placeholderSearchBar": "Produkt-Labels durchsuchen ...",
+            "messageEmpty": "Noch keine Produkt-Labels vorhanden",
+            "textDeleteConfirm": "Möchtest du das Produkt-Label \"{name}\" wirklich löschen?",
+            "titleSidebarItemRefresh": "Aktualisieren"
+        },
+        "detail": {
+            "titleNew": "Neues Produkt-Label",
+            "cardTitleGeneral": "Allgemein",
+            "cardTitleValidity": "Gültigkeit",
+            "cardSubtitleValidity": "Leer lassen, um das Label ohne Zeitbegrenzung anzuzeigen.",
+            "labelName": "Name",
+            "placeholderName": "Namen des Produkt-Labels eingeben ...",
+            "labelColor": "Farbe",
+            "labelPriority": "Priorität",
+            "helpTextPriority": "Labels mit höherer Priorität werden zuerst angezeigt.",
+            "labelActive": "Aktiv",
+            "labelValidFrom": "Gültig ab",
+            "labelValidTo": "Gültig bis",
+            "placeholderDate": "Datum auswählen ...",
+            "messageSaveSuccess": "Produkt-Label wurde gespeichert."
+        },
+        "tab": {
+            "title": "Labels",
+            "cardTitle": "Produkt-Labels",
+            "selectLabel": "Zugewiesene Labels",
+            "selectPlaceholder": "Labels auswählen ...",
+            "helpText": "Änderungen werden mit dem Produkt gespeichert, wenn du auf \"Speichern\" klickst."
+        }
+    }
+}

@@ -1,0 +1,203 @@
+{% block conventions_product_label_list %}
+<sw-page class="conventions-product-label-list">
+
+    {% block conventions_product_label_list_search_bar %}
+    <template #search-bar>
+        <sw-search-bar
+            initial-search-type="product_label"
+            :placeholder="$tc('conventions-product-label.list.placeholderSearchBar')"
+            :initial-search="term"
+            @search="onSearch"
+        />
+    </template>
+    {% endblock %}
+
+    {% block conventions_product_label_list_smart_bar_header %}
+    <template #smart-bar-header>
+        <h2>
+            {{ $tc('conventions-product-label.general.mainMenuItemGeneral') }}
+
+            <span
+                v-if="!isLoading"
+                class="sw-page__smart-bar-amount"
+            >
+                ({{ total }})
+            </span>
+        </h2>
+    </template>
+    {% endblock %}
+
+    {% block conventions_product_label_list_smart_bar_actions %}
+    <template #smart-bar-actions>
+        <mt-button
+            v-tooltip="{
+                message: $tc('sw-privileges.tooltip.warning'),
+                disabled: acl.can('product.creator'),
+                showOnDisabledElements: true
+            }"
+            variant="primary"
+            :disabled="!acl.can('product.creator')"
+            @click="$router.push({ name: 'conventions.product.label.create' })"
+        >
+            {{ $tc('conventions-product-label.list.buttonAdd') }}
+        </mt-button>
+    </template>
+    {% endblock %}
+
+    {% block conventions_product_label_list_language_switch %}
+    <template #language-switch>
+        <sw-language-switch @on-change="onChangeLanguage" />
+    </template>
+    {% endblock %}
+
+    <template #content>
+        {% block conventions_product_label_list_content %}
+        <div class="conventions-product-label-list__content">
+
+            {% block conventions_product_label_list_empty_state %}
+            <mt-empty-state
+                v-if="!isLoading && !total"
+                :centered="true"
+                :icon="$route.meta.$module.icon"
+                :headline="term ? $tc('sw-empty-state.messageNoResultTitle') : $tc('conventions-product-label.list.messageEmpty')"
+                :description="term ? $tc('sw-empty-state.messageNoResultSubline') : $tc($route.meta.$module.description)"
+            />
+            {% endblock %}
+
+            {% block conventions_product_label_list_grid %}
+            <sw-entity-listing
+                v-else
+                class="conventions-product-label-list__grid"
+                identifier="conventions-product-label-list"
+                :data-source="productLabels"
+                :columns="columns"
+                :repository="productLabelRepository"
+                :is-loading="isLoading"
+                :sort-by="currentSortBy"
+                :sort-direction="sortDirection"
+                :show-selection="false"
+                :show-settings="true"
+                :full-page="true"
+                :allow-column-edit="true"
+                :allow-inline-edit="acl.can('product.editor')"
+                :allow-edit="acl.can('product.editor')"
+                :allow-delete="acl.can('product.deleter')"
+                :disable-data-fetching="true"
+                @column-sort="onSortColumn"
+                @page-change="onPageChange"
+                @inline-edit-save="getList"
+            >
+
+                {% block conventions_product_label_list_grid_column_color %}
+                <template #column-color="{ item }">
+                    <span
+                        class="conventions-product-label-list__color"
+                        :style="{ backgroundColor: item.color }"
+                    ></span>
+                    {{ item.color }}
+                </template>
+                {% endblock %}
+
+                {% block conventions_product_label_list_grid_column_active %}
+                <template #column-active="{ item, isInlineEdit }">
+                    <mt-switch
+                        v-if="isInlineEdit"
+                        v-model="item.active"
+                    />
+                    <mt-icon
+                        v-else-if="item.active"
+                        name="regular-checkmark-xs"
+                        class="is--active"
+                    />
+                    <mt-icon
+                        v-else
+                        name="regular-times-s"
+                        class="is--inactive"
+                    />
+                </template>
+                {% endblock %}
+
+                {% block conventions_product_label_list_grid_column_valid_from %}
+                <template #column-validFrom="{ item }">
+                    {{ item.validFrom ? dateFilter(item.validFrom) : '-' }}
+                </template>
+                {% endblock %}
+
+                {% block conventions_product_label_list_grid_column_valid_to %}
+                <template #column-validTo="{ item }">
+                    {{ item.validTo ? dateFilter(item.validTo) : '-' }}
+                </template>
+                {% endblock %}
+
+                {% block conventions_product_label_list_grid_actions %}
+                <template #actions="{ item }">
+                    <sw-context-menu-item
+                        :router-link="{ name: 'conventions.product.label.detail', params: { id: item.id } }"
+                        :disabled="!acl.can('product.editor')"
+                    >
+                        {{ $tc('global.default.edit') }}
+                    </sw-context-menu-item>
+
+                    <sw-context-menu-item
+                        variant="danger"
+                        :disabled="!acl.can('product.deleter')"
+                        @click="onDelete(item.id)"
+                    >
+                        {{ $tc('global.default.delete') }}
+                    </sw-context-menu-item>
+                </template>
+                {% endblock %}
+
+                {% block conventions_product_label_list_grid_action_modals %}
+                <template #action-modals="{ item }">
+                    <sw-modal
+                        v-if="deleteId === item.id"
+                        variant="small"
+                        :title="$tc('global.default.warning')"
+                        @modal-close="onCloseDeleteModal"
+                    >
+                        <p>
+                            {{ $tc('conventions-product-label.list.textDeleteConfirm', { name: item.translated.name }, 0) }}
+                        </p>
+
+                        <template #modal-footer>
+                            <mt-button
+                                size="small"
+                                variant="secondary"
+                                @click="onCloseDeleteModal"
+                            >
+                                {{ $tc('global.default.cancel') }}
+                            </mt-button>
+
+                            <mt-button
+                                size="small"
+                                variant="critical"
+                                @click="onConfirmDelete(item.id)"
+                            >
+                                {{ $tc('global.default.delete') }}
+                            </mt-button>
+                        </template>
+                    </sw-modal>
+                </template>
+                {% endblock %}
+
+            </sw-entity-listing>
+            {% endblock %}
+        </div>
+        {% endblock %}
+    </template>
+
+    {% block conventions_product_label_list_sidebar %}
+    <template #sidebar>
+        <sw-sidebar>
+            <sw-sidebar-item
+                icon="regular-undo"
+                :title="$tc('conventions-product-label.list.titleSidebarItemRefresh')"
+                @click="onRefresh"
+            />
+        </sw-sidebar>
+    </template>
+    {% endblock %}
+
+</sw-page>
+{% endblock %}

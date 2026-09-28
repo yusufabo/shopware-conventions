@@ -1,0 +1,49 @@
+{
+    "global": {
+        "entities": {
+            "product_label": "Product label | Product labels"
+        }
+    },
+    "conventions-product-label": {
+        "general": {
+            "mainMenuItemGeneral": "Product labels",
+            "descriptionTextModule": "Manage product labels"
+        },
+        "list": {
+            "buttonAdd": "Add label",
+            "columnName": "Name",
+            "columnColor": "Color",
+            "columnPriority": "Priority",
+            "columnActive": "Active",
+            "columnValidFrom": "Valid from",
+            "columnValidTo": "Valid to",
+            "placeholderSearchBar": "Search product labels...",
+            "messageEmpty": "No product labels yet",
+            "textDeleteConfirm": "Do you really want to delete the product label \"{name}\"?",
+            "titleSidebarItemRefresh": "Refresh"
+        },
+        "detail": {
+            "titleNew": "New product label",
+            "cardTitleGeneral": "General",
+            "cardTitleValidity": "Validity",
+            "cardSubtitleValidity": "Leave empty to show the label without a time limit.",
+            "labelName": "Name",
+            "placeholderName": "Enter product label name...",
+            "labelColor": "Color",
+            "labelPriority": "Priority",
+            "helpTextPriority": "Labels with a higher priority are shown first.",
+            "labelActive": "Active",
+            "labelValidFrom": "Valid from",
+            "labelValidTo": "Valid to",
+            "placeholderDate": "Select date...",
+            "messageSaveSuccess": "Product label has been saved."
+        },
+        "tab": {
+            "title": "Labels",
+            "cardTitle": "Product labels",
+            "selectLabel": "Assigned labels",
+            "selectPlaceholder": "Select labels...",
+            "helpText": "Changes are saved with the product when you click \"Save\"."
+        }
+    }
+}

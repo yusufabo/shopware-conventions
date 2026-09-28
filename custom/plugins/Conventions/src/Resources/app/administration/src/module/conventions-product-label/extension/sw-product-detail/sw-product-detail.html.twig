@@ -1,0 +1,11 @@
+{% block sw_product_detail_content_tabs_additional %}
+    {% parent %}
+
+    <sw-tabs-item
+        class="sw-product-detail__tab-labels"
+        :route="{ name: 'sw.product.detail.labels', params: { id: $route.params.id } }"
+        :title="$tc('conventions-product-label.tab.title')"
+    >
+        {{ $tc('conventions-product-label.tab.title') }}
+    </sw-tabs-item>
+{% endblock %}

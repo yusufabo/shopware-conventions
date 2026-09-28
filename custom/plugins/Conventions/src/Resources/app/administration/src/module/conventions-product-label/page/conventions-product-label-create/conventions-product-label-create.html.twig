@@ -1,0 +1,12 @@
+{% block conventions_product_label_detail_language_switch %}
+<template #language-switch>
+    <sw-language-switch disabled />
+</template>
+{% endblock %}
+
+{% block conventions_product_label_detail_language_info %}
+<sw-language-info
+    :entity-description="placeholder(productLabel, 'name', $tc('conventions-product-label.detail.titleNew'))"
+    is-new-entity
+/>
+{% endblock %}
