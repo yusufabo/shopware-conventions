@@ -1,0 +1,156 @@
+# This file is managed by shopware-cli. Do not edit manually.
+# Create a compose.override.yaml to customize services.
+# See https://docs.docker.com/compose/how-tos/multiple-compose-files/merge/
+
+services:
+    web:
+        image: ghcr.io/shopware/docker-dev:php8.5-node24-caddy
+        user: 1000:999
+        env_file:
+            - .env.local
+        environment:
+            HOST: 0.0.0.0
+            DATABASE_URL: mysql://root:root@database/shopware
+            MAILER_DSN: smtp://shopware67-shopware-local-mailer:1025
+            TRUSTED_PROXIES: 127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+            SYMFONY_TRUSTED_PROXIES: 127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+            NODE_EXTRA_CA_CERTS: /etc/ssl/certs/ca-certificates.crt
+            MESSENGER_TRANSPORT_DSN: amqp://guest:guest@shopware67-shopware-local-queue:5672
+        volumes:
+            - .:/var/www/html
+            - /home/yusuf/.config/shopware-cli/proxy/ca-bundles/0f14cae697aff427.crt:/etc/ssl/certs/ca-certificates.crt:ro
+        depends_on:
+            database:
+                condition: service_healthy
+        labels:
+            traefik.enable: "true"
+            traefik.docker.network: shopware-cli-proxy
+            traefik.http.routers.shopware67-shopware-local-web.rule: Host(`shopware67.shopware.local`)
+            traefik.http.routers.shopware67-shopware-local-web.entrypoints: websecure
+            traefik.http.routers.shopware67-shopware-local-web.tls: "true"
+            traefik.http.routers.shopware67-shopware-local-web.service: shopware67-shopware-local-web
+            traefik.http.services.shopware67-shopware-local-web.loadbalancer.server.port: "8000"
+            traefik.http.routers.shopware67-shopware-local-web-admin-watch.rule: Host(`admin-watch.shopware67.shopware.local`)
+            traefik.http.routers.shopware67-shopware-local-web-admin-watch.entrypoints: websecure
+            traefik.http.routers.shopware67-shopware-local-web-admin-watch.tls: "true"
+            traefik.http.routers.shopware67-shopware-local-web-admin-watch.service: shopware67-shopware-local-web-admin-watch
+            traefik.http.services.shopware67-shopware-local-web-admin-watch.loadbalancer.server.port: "5173"
+            traefik.http.routers.shopware67-shopware-local-web-storefront-watch.rule: Host(`storefront-watch.shopware67.shopware.local`)
+            traefik.http.routers.shopware67-shopware-local-web-storefront-watch.entrypoints: websecure
+            traefik.http.routers.shopware67-shopware-local-web-storefront-watch.tls: "true"
+            traefik.http.routers.shopware67-shopware-local-web-storefront-watch.service: shopware67-shopware-local-web-storefront-watch
+            traefik.http.services.shopware67-shopware-local-web-storefront-watch.loadbalancer.server.port: "9998"
+            traefik.http.routers.shopware67-shopware-local-web-storefront-watch-assets.rule: Host(`storefront-watch.shopware67.shopware.local`)
+            traefik.http.routers.shopware67-shopware-local-web-storefront-watch-assets.entrypoints: sfassets
+            traefik.http.routers.shopware67-shopware-local-web-storefront-watch-assets.tls: "true"
+            traefik.http.routers.shopware67-shopware-local-web-storefront-watch-assets.service: shopware67-shopware-local-web-storefront-watch-assets
+            traefik.http.services.shopware67-shopware-local-web-storefront-watch-assets.loadbalancer.server.port: "8443"
+            traefik.http.routers.shopware67-shopware-local-web-storefront-watch-bundles.rule: "Host(`storefront-watch.shopware67.shopware.local`) && PathPrefix(`/bundles/`)"
+            traefik.http.routers.shopware67-shopware-local-web-storefront-watch-bundles.entrypoints: websecure
+            traefik.http.routers.shopware67-shopware-local-web-storefront-watch-bundles.tls: "true"
+            traefik.http.routers.shopware67-shopware-local-web-storefront-watch-bundles.service: shopware67-shopware-local-web-storefront-watch-bundles
+            traefik.http.services.shopware67-shopware-local-web-storefront-watch-bundles.loadbalancer.server.port: "8000"
+        networks:
+            default: {}
+            shopware-cli-proxy:
+                aliases:
+                    - shopware67-shopware-local-web
+    database:
+        image: mariadb:11.8
+        command:
+            - --sql_mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION
+            - --log_bin_trust_function_creators=1
+            - --binlog_cache_size=16M
+            - --key_buffer_size=0
+            - --join_buffer_size=1024M
+            - --innodb_log_file_size=128M
+            - --innodb_buffer_pool_size=1024M
+            - --innodb_buffer_pool_instances=1
+            - --group_concat_max_len=320000
+            - --default-time-zone=+00:00
+            - --max_binlog_size=512M
+            - --binlog_expire_logs_seconds=86400
+        ports:
+            - 127.0.0.1::3306
+        environment:
+            MARIADB_DATABASE: shopware
+            MARIADB_ROOT_PASSWORD: root
+            MARIADB_USER: shopware
+            MARIADB_PASSWORD: shopware
+        volumes:
+            - db-data:/var/lib/mysql:rw
+        healthcheck:
+            test:
+                - CMD
+                - mariadb-admin
+                - ping
+                - -h
+                - localhost
+                - -proot
+            start_period: 10s
+            start_interval: 3s
+            interval: 5s
+            timeout: 1s
+            retries: 10
+    adminer:
+        image: adminer
+        environment:
+            ADMINER_DEFAULT_SERVER: database
+        depends_on:
+            database:
+                condition: service_started
+        stop_signal: SIGKILL
+        labels:
+            traefik.enable: "true"
+            traefik.docker.network: shopware-cli-proxy
+            traefik.http.routers.shopware67-shopware-local-adminer.rule: Host(`adminer.shopware67.shopware.local`)
+            traefik.http.routers.shopware67-shopware-local-adminer.entrypoints: websecure
+            traefik.http.routers.shopware67-shopware-local-adminer.tls: "true"
+            traefik.http.routers.shopware67-shopware-local-adminer.service: shopware67-shopware-local-adminer
+            traefik.http.services.shopware67-shopware-local-adminer.loadbalancer.server.port: "8080"
+        networks:
+            default: {}
+            shopware-cli-proxy:
+                aliases:
+                    - shopware67-shopware-local-adminer
+    mailer:
+        image: axllent/mailpit
+        environment:
+            MP_SMTP_AUTH_ACCEPT_ANY: "1"
+            MP_SMTP_AUTH_ALLOW_INSECURE: "1"
+        labels:
+            traefik.enable: "true"
+            traefik.docker.network: shopware-cli-proxy
+            traefik.http.routers.shopware67-shopware-local-mailer.rule: Host(`mailer.shopware67.shopware.local`)
+            traefik.http.routers.shopware67-shopware-local-mailer.entrypoints: websecure
+            traefik.http.routers.shopware67-shopware-local-mailer.tls: "true"
+            traefik.http.routers.shopware67-shopware-local-mailer.service: shopware67-shopware-local-mailer
+            traefik.http.services.shopware67-shopware-local-mailer.loadbalancer.server.port: "8025"
+        networks:
+            default: {}
+            shopware-cli-proxy:
+                aliases:
+                    - shopware67-shopware-local-mailer
+    queue:
+        image: cloudamqp/lavinmq:latest
+        volumes:
+            - lavinmq-data:/var/lib/lavinmq:rw
+        labels:
+            traefik.enable: "true"
+            traefik.docker.network: shopware-cli-proxy
+            traefik.http.routers.shopware67-shopware-local-queue.rule: Host(`queue.shopware67.shopware.local`)
+            traefik.http.routers.shopware67-shopware-local-queue.entrypoints: websecure
+            traefik.http.routers.shopware67-shopware-local-queue.tls: "true"
+            traefik.http.routers.shopware67-shopware-local-queue.service: shopware67-shopware-local-queue
+            traefik.http.services.shopware67-shopware-local-queue.loadbalancer.server.port: "15672"
+        networks:
+            default: {}
+            shopware-cli-proxy:
+                aliases:
+                    - shopware67-shopware-local-queue
+volumes:
+    db-data: {}
+    lavinmq-data: {}
+networks:
+    shopware-cli-proxy:
+        external: true

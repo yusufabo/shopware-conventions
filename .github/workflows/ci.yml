@@ -1,0 +1,130 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PHP_VERSION: '8.4'
+  # Everything Shopware 6.7.14 requires (composer check-platform-reqs), listed explicitly
+  PHP_EXTENSIONS: amqp, ctype, curl, dom, fileinfo, gd, iconv, intl, json, mbstring, openssl, pdo, pdo_mysql, simplexml, sodium, xml, xmlreader, xmlwriter, zip, zlib
+
+jobs:
+  static-analysis:
+    name: PHPStan & PHP-CS-Fixer
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: ${{ env.PHP_EXTENSIONS }}
+          ini-values: memory_limit=-1
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache/files
+          key: composer-${{ runner.os }}-php${{ env.PHP_VERSION }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-php${{ env.PHP_VERSION }}-
+
+      - name: Check platform requirements
+        run: composer check-platform-reqs --lock
+
+      # --no-scripts: the "auto-scripts" (assets:install) boot Shopware, which needs a database
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist --no-scripts
+
+      - name: PHPStan (level max, see phpstan.dist.neon)
+        run: vendor/bin/phpstan analyse --no-progress --error-format=github
+
+      - name: PHP-CS-Fixer (see .php-cs-fixer.dist.php)
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff --show-progress=none
+
+  tests:
+    name: Plugin lifecycle & PHPUnit
+    runs-on: ubuntu-latest
+
+    services:
+      database:
+        image: mariadb:11.8
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: shopware
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    # There is no .env on the runner (it is gitignored). bin/console and Shopware's
+    # TestBootstrapper then skip dotenv and read these environment variables instead.
+    env:
+      APP_ENV: prod
+      APP_URL: http://localhost:8000
+      DATABASE_URL: mysql://root:root@127.0.0.1:3306/shopware
+      LOCK_DSN: flock
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: ${{ env.PHP_EXTENSIONS }}
+          ini-values: memory_limit=-1
+          coverage: none
+          tools: composer:v2
+
+      - name: Generate APP_SECRET for this run
+        run: echo "APP_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache/files
+          key: composer-${{ runner.os }}-php${{ env.PHP_VERSION }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-php${{ env.PHP_VERSION }}-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist --no-scripts
+
+      - name: Install Shopware
+        run: bin/console system:install --create-database --drop-database --basic-setup --force --no-assign-theme --skip-assets-install
+
+      - name: Refresh, install and activate the Conventions plugin
+        run: |
+          bin/console plugin:refresh
+          bin/console plugin:install --activate Conventions
+          bin/console cache:clear
+
+      - name: Verify the plugin is installed and active
+        run: |
+          bin/console plugin:list --format json | php -r '
+              $plugins = json_decode(stream_get_contents(STDIN), true, flags: JSON_THROW_ON_ERROR);
+              $plugin = array_values(array_filter($plugins, static fn (array $p): bool => $p["name"] === "Conventions"))[0] ?? null;
+              if ($plugin === null || $plugin["installedAt"] === null || $plugin["active"] !== true) {
+                  fwrite(STDERR, "Conventions is not installed and active\n");
+                  exit(1);
+              }
+              echo "Conventions {$plugin["version"]} is installed and active\n";
+          '
+          bin/console dal:validate
+
+      # Uses its own database (DATABASE_URL + "_test"), created by Shopware's TestBootstrapper
+      - name: PHPUnit
+        run: vendor/bin/phpunit
